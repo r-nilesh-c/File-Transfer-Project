@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Transfer System</title>
+</head>
+<body>
+    <h1>File Transfer System</h1>
+    <input type="text" id="serverAddress" placeholder="Enter server address (optional)">
+    <input type="file" id="fileInput">
+    <button onclick="uploadFile()">Upload</button>
+    <input type="text" id="fileId" placeholder="Enter file ID to download">
+    <button onclick="downloadFile()">Download</button>
+    <div id="statusMessage" style="display:none;"></div>
+
+    <script>
+        // Add this function at the beginning
+        function getServerUrl() {
+            const serverAddress = document.getElementById('serverAddress').value.trim();
+            return serverAddress || window.location.origin;
+        }
+
+        // Update the uploadFile function
+        async function uploadFile() {
+            const fileInput = document.getElementById('fileInput');
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            try {
+                const serverUrl = getServerUrl();
+                const response = await fetch(`${serverUrl}/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(result.error || 'Upload failed');
+                }
+
+                const fileId = result.fileId;
+                const statusMessage = document.getElementById('statusMessage');
+                statusMessage.textContent = 'File uploaded successfully. File ID: ' + fileId;
+                statusMessage.style.backgroundColor = '#dff0d8';
+                statusMessage.style.display = 'block';
+            } catch (error) {
+                console.error('Upload error:', error);
+                const statusMessage = document.getElementById('statusMessage');
+                statusMessage.textContent = error.message;
+                statusMessage.style.backgroundColor = '#f2dede';
+                statusMessage.style.display = 'block';
+            }
+        }
+
+        // Update the downloadFile function
+        async function downloadFile() {
+            const fileId = document.getElementById('fileId').value;
+            if (!fileId) {
+                alert('Please enter a file ID');
+                return;
+            }
+
+            try {
+                const serverUrl = getServerUrl();
+                const response = await fetch(`${serverUrl}/download/${fileId}`);
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Download failed');
+                }
+
+                // Handle the download logic here
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = fileId; // You might want to set a proper filename here
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
+            } catch (error) {
+                alert(error.message);
+            }
+        }
+    </script>
+</body>
+</html>
