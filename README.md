@@ -4,9 +4,30 @@ A secure, encrypted file transfer system built with Spring Boot that allows user
 
 ## Features
 
+- Secure file encryption using custom byte cipher algorithm
+- Automatic file expiration after 10 minutes
+- One-time use access codes for file retrieval
+- Automatic cleanup of expired files
+- Support for large file transfers (up to 100MB)
+- Cross-platform compatibility
+- Web-based interface for easy file sharing
+- Public access capability through ngrok integration
+- Real-time file transfer status
+- Secure temporary storage with automatic deletion
+- CORS support for cross-origin requests
+- Detailed logging and error handling
+- Clean shutdown with automatic cleanup
 
 ## Prerequisites
 
+- Java JDK 11 or higher
+- Maven 3.6+ for building the project
+- Minimum 1GB free disk space for file storage
+- Modern web browser (Chrome, Firefox, Safari, or Edge)
+- Port 8080 available on the host machine
+- Write permissions in the home directory for file storage
+- ngrok (optional, for public access)
+- Operating System: Windows, macOS, or Linux
 
 ## Installation & Setup
 
