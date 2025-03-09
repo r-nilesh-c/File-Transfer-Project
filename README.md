@@ -51,10 +51,6 @@ Before running the application, make sure to:
     - For network access, configure your firewall and network settings
     - Update the server address in the web interface when accessing
 
-3. Security considerations:
-    - The encryption keys are stored in the `encryption.keys` file
-    - Ensure this file has proper permissions
-    - Consider implementing additional security measures for production use
 
 ## Usage
 
@@ -127,9 +123,6 @@ secure-file-transfer/
 4. Push to the branch
 5. Create a Pull Request
 
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## Disclaimer
 
