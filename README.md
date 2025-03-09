@@ -10,7 +10,7 @@ A secure, encrypted file transfer system built with Spring Boot that allows user
 
 ## Installation & Setup
 
-1. Clone the repository: git clone https://[github.com/r-nilesh-c/secure-file-transfer](https://github.com/r-nilesh-c/File-Transfer-Project).git 
+1. Clone the repository: git clone https://github.com/r-nilesh-c/File-Transfer-Project.git 
                          cd secure-file-transfer
 2. Configure the application:
    - Open `/src/main/resources/application.properties`
