@@ -8,221 +8,239 @@
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
-            background-color: #f5f5f5;
+            background-color: #f0f2f5;
+        }
+        h2 {
+            color: #333;
         }
         .container {
             background-color: white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-            border: 1px solid #ccc;
-            padding: 20px;
-            border-radius: 5px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            padding: 30px;
+            border-radius: 12px;
         }
         button {
-            background-color: #4CAF50;
+            background-color: #2563eb;
             color: white;
-            padding: 10px 20px;
+            padding: 12px 24px;
             border: none;
-            border-radius: 4px;
+            border-radius: 8px;
+            font-size: 16px;
             cursor: pointer;
+            transition: background-color 0.2s ease;
         }
         button:hover {
-            background-color: #45a049;
+            background-color: #1e40af;
         }
-        .result {
-            margin-top: 20px;
+        input[type="file"], input[type="text"] {
+            width: 100%;
             padding: 10px;
+            margin-top: 10px;
+            margin-bottom: 20px;
             border: 1px solid #ccc;
-            display: none;
+            border-radius: 8px;
+            font-size: 16px;
         }
         .progress-container {
             width: 100%;
-            margin-top: 10px;
             display: none;
+            margin-top: 20px;
         }
         .progress-bar {
             width: 0%;
             height: 20px;
-            background-color: #4CAF50;
-            border-radius: 4px;
-            transition: width 0.3s ease-in-out;
+            background-color: #2563eb;
+            border-radius: 8px;
+            transition: width 0.4s ease;
         }
         .progress-text {
             text-align: center;
-            margin-top: 5px;
+            margin-top: 10px;
+            font-weight: 500;
         }
         .status-message {
-            margin-top: 10px;
-            padding: 10px;
-            border-radius: 4px;
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 8px;
             display: none;
         }
         #uploadResult {
-            background-color: #dff0d8;
-            padding: 15px;
-            border-radius: 4px;
+            background-color: #e0f7ec;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border-left: 5px solid #10b981;
+        }
+        .expired {
+            background-color: #fee2e2;
+            border-left: 5px solid #dc2626;
+            color: #991b1b;
+        }
+        #qrCode {
             margin-top: 15px;
-            border: 1px solid #d6e9c6;
+            text-align: center;
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
 </head>
 <body>
-    <div class="container">
-        <h2>Send File</h2>
-        <input type="file" id="fileInput">
-        <button onclick="uploadFile()">Send File</button>
-        <div class="progress-container" id="progressContainer">
-            <div class="progress-bar" id="progressBar"></div>
-            <div class="progress-text" id="progressText">0%</div>
-        </div>
-        <div class="status-message" id="statusMessage"></div>
-        <div id="uploadResult" class="result">
-            <div id="fileIdDisplay"></div>
-            <div id="countdown"></div>
-        </div>
+<div class="container">
+    <h2>📤 Send File</h2>
+    <input type="file" id="fileInput">
+    <button onclick="uploadFile()">Send File</button>
+    <div class="progress-container" id="progressContainer">
+        <div class="progress-bar" id="progressBar"></div>
+        <div class="progress-text" id="progressText">0%</div>
     </div>
-
-    <div class="container">
-        <h2>Receive File</h2>
-        <input type="text" id="fileId" placeholder="Enter file ID">
-        <button onclick="downloadFile()">Download File</button>
+    <div class="status-message" id="statusMessage"></div>
+    <div id="uploadResult" class="result">
+        <strong id="fileIdDisplay"></strong>
+        <div id="countdown"></div>
+        <div id="qrCode"></div>
     </div>
+</div>
 
-    <script>
-        let uploadXHR = null; // Store XMLHttpRequest reference for better control
-         
-        async function uploadFile() {
-            const fileInput = document.getElementById('fileInput');
-            const file = fileInput.files[0];
-            const uploadButton = document.querySelector('button');
-            const progressContainer = document.getElementById('progressContainer');
-            const progressBar = document.getElementById('progressBar');
-            const progressText = document.getElementById('progressText');
-            const statusMessage = document.getElementById('statusMessage');
-            
-            if (!file) {
-                alert('Please select a file');
-                return;
+<div class="container">
+    <h2>📂 Receive File</h2>
+    <input type="text" id="fileId" placeholder="Enter file ID">
+    <button onclick="downloadFile()">Download File</button>
+</div>
+
+<script>
+    let uploadXHR = null;
+
+    async function uploadFile() {
+        const fileInput = document.getElementById('fileInput');
+        const file = fileInput.files[0];
+        const progressContainer = document.getElementById('progressContainer');
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+        const statusMessage = document.getElementById('statusMessage');
+        const uploadResult = document.getElementById('uploadResult');
+        const qrCodeContainer = document.getElementById('qrCode');
+
+        if (!file) {
+            alert('Please select a file');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        progressContainer.style.display = 'block';
+        uploadResult.style.display = 'none';
+        qrCodeContainer.innerHTML = '';
+        statusMessage.style.display = 'none';
+        progressBar.style.width = '0%';
+        progressText.textContent = '0%';
+
+        try {
+            const xhr = new XMLHttpRequest();
+            uploadXHR = xhr;
+            xhr.open('POST', window.location.origin + '/upload', true);
+
+            xhr.upload.onprogress = (e) => {
+                const percent = (e.loaded / e.total) * 100;
+                progressBar.style.width = percent + '%';
+                progressText.textContent = Math.round(percent) + '%';
+            };
+
+            xhr.onload = () => {
+    const statusMessage = document.getElementById('statusMessage');
+    const uploadResult = document.getElementById('uploadResult');
+    const qrCodeContainer = document.getElementById('qrCode');
+
+    try {
+        const json = JSON.parse(xhr.responseText);
+
+        if (!json.fileId) {
+            throw new Error("Missing file ID");
+        }
+
+        const fileId = json.fileId;
+        const downloadURL = `${window.location.origin}/download/${fileId}`;
+
+        document.getElementById('fileIdDisplay').textContent = `File ID: ${fileId}`;
+        uploadResult.style.display = 'block';
+        startCountdown();
+
+        statusMessage.textContent = 'Upload successful!';
+        statusMessage.style.backgroundColor = '#d1fae5';
+        statusMessage.style.display = 'block';
+
+        QRCode.toCanvas(document.createElement('canvas'), downloadURL, (err, canvas) => {
+            if (!err) {
+                qrCodeContainer.appendChild(canvas);
             }
+        });
 
-            const formData = new FormData();
-            formData.append('file', file);
+    } catch (err) {
+        statusMessage.textContent = 'Upload failed. ' + (xhr.responseText || 'Unexpected error.');
+        statusMessage.style.backgroundColor = '#fee2e2';
+        statusMessage.style.display = 'block';
+        uploadResult.style.display = 'none';
+    }
+};
 
-            uploadButton.disabled = true;
-            progressContainer.style.display = 'block';
-            statusMessage.style.display = 'none';
-            
-            // Reset progress
-            progressBar.style.width = '0%';
-            progressText.textContent = '0%';
-            
-            try {
-                if (uploadXHR) {
-                    uploadXHR.abort(); // Abort any existing upload
-                }
-                const xhr = uploadXHR = new XMLHttpRequest();
-                xhr.open('POST', window.location.origin + '/upload', true);
-                
-                xhr.upload.onprogress = (e) => {
-                    const percent = (e.loaded / e.total) * 100;
-                    progressBar.style.width = percent + '%';
-                    progressText.textContent = Math.round(percent) + '%';
-                };
-                
-                xhr.upload.onerror = function() {
-                    console.error('Upload failed:', xhr.status, xhr.statusText);
-                    statusMessage.textContent = 'Upload failed. Please check your connection and try again.';
-                    statusMessage.style.backgroundColor = '#f2dede';
-                    statusMessage.style.display = 'block';
-                    uploadButton.disabled = false;
-                    uploadXHR = null;
-                };
-                
-                xhr.onload = function() {
-                    if (xhr.status === 200) {
-                        const fileId = xhr.responseText;
-                        document.getElementById('fileIdDisplay').textContent = `File ID: ${fileId}`;
-                        document.getElementById('uploadResult').style.display = 'block';
-                        document.getElementById('fileInput').value = ''; // Clear the file input
-                        statusMessage.textContent = 'Upload successful!';
-                        statusMessage.style.backgroundColor = '#dff0d8';
-                        statusMessage.style.display = 'block';
-                        startCountdown();
-                    } else {
-                        console.error('Server returned error:', xhr.status, xhr.responseText);
-                        statusMessage.textContent = `Upload failed: Server returned ${xhr.status}`;
-                        statusMessage.style.backgroundColor = '#f2dede';
-                        statusMessage.style.display = 'block';
-                    }
-                    uploadXHR = null;
-                };
-                
-                xhr.onerror = function() {
-                    console.error('Network error occurred');
-                    statusMessage.textContent = 'Network error occurred. Please check your connection.';
-                    statusMessage.style.backgroundColor = '#f2dede';
-                    statusMessage.style.display = 'block';
-                    uploadXHR = null;
-                };
-                
-                xhr.send(formData);
-            } catch (error) {
-                console.error('Upload error:', error);
-                statusMessage.textContent = 'Error uploading file: ' + error.message;
-                statusMessage.style.backgroundColor = '#f2dede';
+
+
+            xhr.onerror = () => {
+                statusMessage.textContent = 'Network error. Please try again.';
+                statusMessage.style.backgroundColor = '#fee2e2';
                 statusMessage.style.display = 'block';
-            } finally {
-                uploadButton.disabled = false;
-                progressContainer.style.display = 'none';
-            }
-        }
+            };
 
-        function startCountdown() {
-            let timeLeft = 600; // 10 minutes in seconds
-            const countdownElement = document.getElementById('countdown');
-            
-            const timer = setInterval(() => {
-                const minutes = Math.floor(timeLeft / 60);
-                const seconds = timeLeft % 60;
-                countdownElement.textContent = 
-                    `Expires in: ${minutes}:${seconds.toString().padStart(2, '0')}`;
-                
-                if (timeLeft <= 0) {
-                    clearInterval(timer);
-                    countdownElement.textContent = 'File has expired';
-                    document.getElementById('fileIdDisplay').textContent = '';
-                }
-                timeLeft--;
-            }, 1000);
+            xhr.send(formData);
+        } catch (err) {
+            statusMessage.textContent = 'Error: ' + err.message;
+            statusMessage.style.backgroundColor = '#fee2e2';
+            statusMessage.style.display = 'block';
         }
+    }
 
-        async function downloadFile() {
-            const fileId = document.getElementById('fileId').value;
-            if (!fileId) {
-                alert('Please enter a file ID');
-                return;
+    function startCountdown() {
+        let timeLeft = 600;
+        const countdownElement = document.getElementById('countdown');
+        const timer = setInterval(() => {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            countdownElement.textContent = `Expires in: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+            if (timeLeft <= 0) {
+                clearInterval(timer);
+                countdownElement.textContent = 'File has expired';
+                document.getElementById('uploadResult').classList.add('expired');
             }
-            
-            try {
-                const response = await fetch(`${window.location.origin}/download/${fileId}`);
-                if (!response.ok) {
-                    throw new Error('File not found');
-                }
-                const contentDisposition = response.headers.get('Content-Disposition');
-                const fileName = contentDisposition ? contentDisposition.split('filename="')[1].split('"')[0] : 'downloaded-file';
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
-                const anchorElement = document.createElement('a');
-                anchorElement.href = url;
-                anchorElement.download = fileName;
-                document.body.appendChild(anchorElement);
-                anchorElement.click();
-                window.URL.revokeObjectURL(url);
-                anchorElement.remove();
-            } catch (error) {
-                alert('Error downloading file: ' + error);
-            }
+            timeLeft--;
+        }, 1000);
+    }
+
+    async function downloadFile() {
+        const fileId = document.getElementById('fileId').value.trim();
+        if (!fileId) {
+            alert('Please enter a file ID');
+            return;
         }
-    </script>
+        try {
+            const response = await fetch(`${window.location.origin}/download/${fileId}`);
+            if (!response.ok) {
+                throw new Error('File not found or expired');
+            }
+            const contentDisposition = response.headers.get('Content-Disposition');
+            const fileName = contentDisposition ? contentDisposition.split('filename="')[1].split('"')[0] : 'downloaded-file';
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const anchor = document.createElement('a');
+            anchor.href = url;
+            anchor.download = fileName;
+            document.body.appendChild(anchor);
+            anchor.click();
+            anchor.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            alert('Error downloading file: ' + error.message);
+        }
+    }
+</script>
 </body>
 </html>
