@@ -2,10 +2,6 @@
 
 A secure, encrypted file transfer system built with Spring Boot that allows users to securely share files through temporary links and one-time codes. Files are automatically encrypted during upload and decrypted during download, with automatic cleanup of expired files.
 
-## Features
-
-
-## Prerequisites
 
 
 ## Installation & Setup
@@ -123,11 +119,21 @@ secure-file-transfer/
 4. Push to the branch
 5. Create a Pull Request
 
+## 🛡 Security Analysis
+
+This project includes a custom encryption utility (CustomByteCipher) implemented in Java. The cipher encrypts file bytes before storage or transfer.
+
+## Cryptanalysis Findings:
+
+The cipher uses a small key space (256 possibilities).
+
+It is vulnerable to brute-force and known-plaintext attacks.
+
+Attack scripts demonstrate key recovery in under a second for structured data.
+
+Note: This tool was built for learning and experimentation. For production systems, industry-standard algorithms such as AES with secure key management should be used instead.
 
 ## Disclaimer
 
 This project is for educational purposes. While it implements basic security measures, additional security considerations should be implemented for production use. Note: When using ngrok, be aware of its security implications and limitations in the free tier.
 
-## Support
-
-For issues and feature requests, please create an issue in the GitHub repository.
