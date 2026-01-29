@@ -1,8 +1,16 @@
-# Secure File Transfer System
+## 🛡 Security Analysis
 
-A secure, encrypted file transfer system built with Spring Boot that allows users to securely share files through temporary links and one-time codes. Files are automatically encrypted during upload and decrypted during download, with automatic cleanup of expired files.
+This project includes a custom encryption utility (CustomByteCipher) implemented in Java. The cipher encrypts file bytes before storage or transfer.
 
+## Cryptanalysis Findings:
 
+The cipher uses a small key space (256 possibilities).
+
+It is vulnerable to brute-force and known-plaintext attacks.
+
+Attack scripts demonstrate key recovery in under a second for structured data.
+
+Note: This tool was built for learning and experimentation. For production systems, industry-standard algorithms such as AES with secure key management should be used instead.
 
 ## Installation & Setup
 
@@ -67,9 +75,6 @@ Before running the application, make sure to:
     - Click "Download File"
     - Files expire after 10 minutes
 
-## Security Features
-
-
 ## Troubleshooting
 
 1. Upload fails:
@@ -92,46 +97,6 @@ Before running the application, make sure to:
     - Check ngrok tunnel status
     - Ensure correct port forwarding (8080)
 
-## Development Notes
-
-
-## Project Structure
-secure-file-transfer/
-├── src/ 
-│ ├── main/ 
-│ │ ├── java/ 
-│ │ │ └── com/yourproject/ 
-│ │ │ ├── controller/ 
-│ │ │ ├── model/ 
-│ │ │ ├── service/ 
-│ │ │ └── utils/ 
-│ │ └── resources/ 
-│ │ ├── templates/ 
-│ │ └── application.properties 
-├── pom.xml 
-└── README.md
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
-
-## 🛡 Security Analysis
-
-This project includes a custom encryption utility (CustomByteCipher) implemented in Java. The cipher encrypts file bytes before storage or transfer.
-
-## Cryptanalysis Findings:
-
-The cipher uses a small key space (256 possibilities).
-
-It is vulnerable to brute-force and known-plaintext attacks.
-
-Attack scripts demonstrate key recovery in under a second for structured data.
-
-Note: This tool was built for learning and experimentation. For production systems, industry-standard algorithms such as AES with secure key management should be used instead.
 
 ## Disclaimer
 
